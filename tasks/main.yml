@@ -1,0 +1,58 @@
+---
+
+- name: Clone WP-CLI from GitHub
+  become: yes
+  git:
+    repo: https://github.com/wp-cli/wp-cli.git
+    dest: "{{ wp_cli_install_path }}"
+    version: "{{  wp_cli_version }}"
+    update: "{{ wp_cli_keep_updated }}"
+    force: "{{ wp_cli_force_update }}"
+  register: wp_cli_clone
+
+- name: Check for composer.json
+  stat: path={{ wp_cli_install_path }}/composer.json
+  register: wp_cli_composer
+
+- name: Install WP-CLI & dependencies with Composer at {{ wp_cli_install_path }}
+  become: yes
+  composer:
+    command: "install"
+    working_dir: "{{ wp_cli_install_path }}"
+
+- name: Create drush symlink at {{ wp_cli_path }}
+  become: yes
+  file:
+    src: "{{ wp_cli_install_path }}/bin/wp"
+    dest: "{{ wp_cli_path }}"
+    state: link
+
+# If the `grep` does not find the wp-completion it will throw and error, but it
+# will be ignored by Ansible.
+# TODO: Improve the way of checking the scipt.
+- name: Check if wp-completion.bash is in .bashrc or .bash_profile
+  command: \grep 'source "{{ wp_cli_completion_script }}"' "{{ wp_cli_profile_path }}"
+  register: wp_cli_check_bash_completion
+  check_mode: no
+  ignore_errors: True
+  changed_when: False
+
+- name: Insert wp-completion.bash in .bashrc or .bash_profile
+  blockinfile:
+    dest: "{{ wp_cli_profile_path }}"
+    block: |
+      # ------------------------------------------------------------------------------
+      # WordPress
+      # ------------------------------------------------------------------------------
+      enable_wordpress_customizations () {
+        if hash wp 2>/dev/null; then
+          # Include WordPress WP-CLI  completion.
+          if [ -f "{{ wp_cli_completion_script }}" ] ; then
+            source "{{ wp_cli_completion_script }}"
+          fi
+        fi
+      }
+      enable_wordpress_customizations
+    backup: yes
+    state: present
+  when: wp_cli_check_bash_completion.rc != 0 and wp_cli_completion_add

@@ -1,0 +1,23 @@
+---
+
+# Directory for WP-CLI core.
+wp_cli_install_path: /usr/local/share/applications/wp
+
+# Directory for WP-CLI.
+wp_cli_path: /usr/local/bin/wp
+
+# WP-CLI version, branch or tag (like: "v1.1.0" or "master").
+wp_cli_version: "v1.1.0"
+
+# Update drush every time we run the role.
+wp_cli_keep_updated: yes
+wp_cli_force_update: no
+
+# Add auto completion scipt.
+wp_cli_completion_add : true
+
+# Directory for WP-CLI auto completion scipt.
+wp_cli_completion_script: "{{ wp_cli_install_path }}/utils/wp-completion.bash"
+
+# Path for .bashrc or .bash_profile for  WP-CLI auto completion scipt.
+wp_cli_profile_path: "/home/vagrant/dotfiles/.bashrc"
