@@ -20,7 +20,7 @@
     command: "install"
     working_dir: "{{ wp_cli_install_path }}"
 
-- name: Create drush symlink at {{ wp_cli_path }}
+- name: Create symlink at {{ wp_cli_path }}
   become: yes
   file:
     src: "{{ wp_cli_install_path }}/bin/wp"
